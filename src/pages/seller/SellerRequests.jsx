@@ -180,7 +180,12 @@ export default function SellerRequests() {
                 <div key={req.id} style={{background:'var(--surface)', borderRadius:'var(--radius-lg)', padding:'1.25rem', border:'1px solid var(--border)', cursor: 'pointer', boxShadow: 'var(--shadow-xs)'}} onClick={() => setActiveRequest(req)}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.75rem'}}>
                       <div>
-                          <h3 style={{margin:'0 0 0.25rem 0', fontSize:'1.125rem'}}>{req.listings?.produce_name || 'Produce'}</h3>
+                          <h3 style={{margin:'0 0 0.25rem 0', fontSize:'1.125rem'}}>
+                            {req.listings?.produce_name || 'Produce'}
+                            {req.message === 'Cart Purchase' && (
+                              <span style={{ fontSize: '0.7rem', background: 'var(--success-bg, #dcfce7)', color: 'var(--success, #16a34a)', padding: '0.125rem 0.5rem', borderRadius: '1rem', marginLeft: '0.5rem', verticalAlign: 'middle' }}>Direct purchase</span>
+                            )}
+                          </h3>
                           <div className="text-muted" style={{fontSize:'0.85rem'}}>{bName} · <span style={{textTransform:'capitalize'}}>{bType}</span></div>
                       </div>
                       <span className={`seller-badge seller-badge-${req.status}`}>{req.status}</span>
@@ -215,7 +220,12 @@ export default function SellerRequests() {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 </button>
                 <div>
-                    <h2 className="seller-modal-title">{activeRequest.listings?.produce_name}</h2>
+                    <h2 className="seller-modal-title">
+                        {activeRequest.listings?.produce_name}
+                        {activeRequest.message === 'Cart Purchase' && (
+                            <span style={{ fontSize: '0.75rem', background: 'var(--success-bg, #dcfce7)', color: 'var(--success, #16a34a)', padding: '0.15rem 0.5rem', borderRadius: '1rem', marginLeft: '0.5rem', verticalAlign: 'middle', fontWeight: 600 }}>Direct purchase</span>
+                        )}
+                    </h2>
                     <div className="text-muted" style={{fontSize:'0.85rem'}}>Requested on {new Date(activeRequest.created_at).toLocaleDateString()}</div>
                 </div>
             </header>

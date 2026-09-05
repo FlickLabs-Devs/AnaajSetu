@@ -30,7 +30,7 @@ export default function BuyerCart() {
         setCheckoutSuccess(true);
         clearCartLocal();
         setTimeout(() => {
-          navigate('/buyer/orders');
+          navigate('/buyer/requests');
         }, 2500);
       } else {
         throw new Error('Checkout failed unexpectedly.');
@@ -70,10 +70,10 @@ export default function BuyerCart() {
                     <polyline points="20 6 9 17 4 12" />
                 </svg>
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem' }}>Order Placed!</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Your order has been grouped and sent to the respective farmers.</p>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem' }}>Requests Sent!</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Your purchase requests are now waiting for farmer approval.</p>
             <div className="bpl-spinner" style={{width: '30px', height: '30px', borderTopColor: 'var(--buyer-primary)'}}></div>
-            <p style={{ color: 'var(--text-faint)', marginTop: '1rem', fontSize: '0.875rem' }}>Redirecting to your orders...</p>
+            <p style={{ color: 'var(--text-faint)', marginTop: '1rem', fontSize: '0.875rem' }}>Redirecting to your requests...</p>
         </div>
       </div>
     );
