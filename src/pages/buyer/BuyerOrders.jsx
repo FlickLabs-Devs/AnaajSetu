@@ -3,15 +3,23 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import BuyerBottomNav from '../../components/buyer/BuyerBottomNav';
+import BuyerHeaderTop from '../../components/buyer/BuyerHeaderTop';
 
 export default function BuyerOrders() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [activeOrder, setActiveOrder] = useState(null);
   const [error, setError] = useState(null);
   const [otp, setOtp] = useState('');
+  
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroup = (groupId, e) => {
+    e.stopPropagation();
+    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
   const loadOrders = async () => {
     setLoading(true);
@@ -25,7 +33,7 @@ export default function BuyerOrders() {
 
       if (ordersError) throw ordersError;
 
-      let mappedOrders = [];
+      let processedItems = [];
       if (rawOrders && rawOrders.length > 0) {
         const farmerIds = [...new Set(rawOrders.map(o => o.farmer_id).filter(Boolean))];
         const listingIds = [...new Set(rawOrders.map(o => o.listing_id).filter(Boolean))];
@@ -47,7 +55,7 @@ export default function BuyerOrders() {
             });
         }
 
-        mappedOrders = rawOrders.map(o => {
+        const mappedOrders = rawOrders.map(o => {
             const ls = listingsMap[o.listing_id] || null;
             if (ls) ls.listing_images = imagesMap[o.listing_id] || [];
             return {
@@ -56,9 +64,37 @@ export default function BuyerOrders() {
                 listings: ls
             };
         });
+
+        const groups = {};
+        const standalone = [];
+
+        mappedOrders.forEach(o => {
+          if (o.order_group_id) {
+            if (!groups[o.order_group_id]) {
+              groups[o.order_group_id] = {
+                id: o.order_group_id,
+                is_group: true,
+                status: o.status,
+                created_at: o.created_at,
+                total_amount: 0,
+                orders: []
+              };
+            }
+            groups[o.order_group_id].orders.push(o);
+            groups[o.order_group_id].total_amount += Number(o.total_amount);
+            
+            if (o.status === 'accepted') {
+                groups[o.order_group_id].status = 'accepted';
+            }
+          } else {
+            standalone.push({ ...o, is_group: false });
+          }
+        });
+
+        processedItems = [...Object.values(groups), ...standalone].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       }
 
-      setOrders(mappedOrders);
+      setItems(processedItems);
     } catch (err) {
       console.error(err);
       setError("Unable to load orders.");
@@ -109,26 +145,105 @@ export default function BuyerOrders() {
     }
   };
 
-  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  const filtered = filter === 'all' ? items : items.filter(item => item.status === filter);
+
+  const renderOrderCard = (order, isNested = false) => {
+      const date = new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      let statusClass = 'status-pending';
+      if (order.status === 'accepted') statusClass = 'status-accepted';
+      else if (order.status === 'completed') statusClass = 'status-success';
+      else if (order.status === 'cancelled') statusClass = 'status-rejected';
+
+      return (
+          <div 
+              key={order.id} 
+              className={`buyer-order-card ${isNested ? 'nested-order-card' : ''}`}
+              style={isNested ? { marginBottom: 0, boxShadow: 'none', border: '1px solid var(--border)', background: 'var(--bg-main)' } : {}}
+              onClick={() => handleOpenDetail(order)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleOpenDetail(order);
+                  }
+              }}
+          >
+              <div className="boc-header">
+                  <div className="boc-header-left">
+                      <h3 className="boc-title">{order.produce_name}</h3>
+                      <div className="boc-seller">{order.farmer_profiles?.full_name || 'Unknown Seller'}</div>
+                  </div>
+                  <div className="boc-header-right">
+                      <span className={`brc-status-badge ${statusClass}`}>{order.status === 'accepted' ? 'Active' : order.status}</span>
+                  </div>
+              </div>
+              <div className="boc-body">
+                  <div className="boc-detail-item">
+                      <span className="boc-detail-label">Quantity</span>
+                      <span className="boc-detail-value">{order.quantity} {order.unit}</span>
+                  </div>
+                  <div className="boc-detail-item">
+                      <span className="boc-detail-label">Total</span>
+                      <span className="boc-detail-value boc-price">₹{order.total_amount}</span>
+                  </div>
+              </div>
+              {!isNested && (
+                <div className="boc-footer">
+                    <span className="boc-date">{date}</span>
+                    <span className="boc-id">Order #{order.id.split('-')[0].toUpperCase()}</span>
+                </div>
+              )}
+          </div>
+      );
+  };
+
+  const renderGroupCard = (group) => {
+      const isExpanded = expandedGroups[group.id];
+      const date = new Date(group.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      
+      let statusClass = 'status-pending';
+      if (group.status === 'accepted') statusClass = 'status-accepted';
+      else if (group.status === 'completed') statusClass = 'status-success';
+      else if (group.status === 'cancelled') statusClass = 'status-rejected';
+
+      return (
+          <div key={group.id} className="buyer-order-group-card" style={{ background: 'var(--surface)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', marginBottom: '1rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)', cursor: 'pointer' }} onClick={(e) => toggleGroup(group.id, e)}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.25rem' }}>Cart Order</h3>
+                      <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{group.orders.length} items • ₹{group.total_amount.toFixed(2)}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)', marginTop: '0.5rem' }}>{date}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                      <span className={`brc-status-badge ${statusClass}`}>
+                          {group.status === 'accepted' ? 'Active' : group.status}
+                      </span>
+                      <button style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', padding: '0.25rem' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                      </button>
+                  </div>
+               </div>
+               {isExpanded && (
+                   <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }} onClick={e => e.stopPropagation()}>
+                       <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Individual Orders</div>
+                       {group.orders.map(order => renderOrderCard(order, true))}
+                   </div>
+               )}
+          </div>
+      );
+  };
 
   return (
-    <div className="buyer-app buyer-orders-page" id="buyer-app">
+    <div className="buyer-app buyer-orders-page" id="buyer-app" style={{ paddingBottom: '100px' }}>
         {/* HEADER */}
         <header className="dash-header" style={{ background: 'var(--buyer-header-gradient)', paddingBottom: '1.5rem' }}>
-            <div className="dash-header-top">
-                <Link to="/buyer" className="dash-brand" aria-label="Back to Marketplace">
-                    <img src="/assets/images/logo.png" alt="AnaajSetu" />
-                </Link>
-                <Link to="/buyer/profile" className="dash-profile-btn" aria-label="My Profile">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                </Link>
-            </div>
+            <BuyerHeaderTop />
             <div className="dash-header-greeting">
-                <h1 style={{fontSize:'1.5rem'}}>Order History</h1>
-                <p>Track your purchases and completed orders</p>
+                <h1 style={{fontSize:'1.5rem'}}>My Orders</h1>
+                <p>Track your purchases</p>
             </div>
         </header>
 
@@ -184,54 +299,7 @@ export default function BuyerOrders() {
                     )}
                 </div>
             ) : (
-                filtered.map(order => {
-                    const date = new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                    
-                    let statusClass = 'status-pending';
-                    if (order.status === 'accepted') statusClass = 'status-accepted';
-                    else if (order.status === 'completed') statusClass = 'status-success';
-                    else if (order.status === 'cancelled') statusClass = 'status-rejected';
-
-                    return (
-                        <div 
-                            key={order.id} 
-                            className="buyer-order-card" 
-                            onClick={() => handleOpenDetail(order)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    handleOpenDetail(order);
-                                }
-                            }}
-                        >
-                            <div className="boc-header">
-                                <div className="boc-header-left">
-                                    <h3 className="boc-title">{order.produce_name}</h3>
-                                    <div className="boc-seller">{order.farmer_profiles?.full_name || 'Unknown Seller'}</div>
-                                </div>
-                                <div className="boc-header-right">
-                                    <span className={`brc-status-badge ${statusClass}`}>{order.status === 'accepted' ? 'Active' : order.status}</span>
-                                </div>
-                            </div>
-                            <div className="boc-body">
-                                <div className="boc-detail-item">
-                                    <span className="boc-detail-label">Quantity</span>
-                                    <span className="boc-detail-value">{order.quantity} {order.unit}</span>
-                                </div>
-                                <div className="boc-detail-item">
-                                    <span className="boc-detail-label">Total</span>
-                                    <span className="boc-detail-value boc-price">₹{order.total_amount}</span>
-                                </div>
-                            </div>
-                            <div className="boc-footer">
-                                <span className="boc-date">{date}</span>
-                                <span className="boc-id">Order #{order.id.split('-')[0].toUpperCase()}</span>
-                            </div>
-                        </div>
-                    );
-                })
+                filtered.map(item => item.is_group ? renderGroupCard(item) : renderOrderCard(item))
             )}
         </div>
 

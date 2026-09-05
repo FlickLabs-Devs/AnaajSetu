@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import BuyerBottomNav from '../../components/buyer/BuyerBottomNav';
+import BuyerHeaderTop from '../../components/buyer/BuyerHeaderTop';
 
 export default function BuyerNegotiations() {
   const { user } = useAuth();
@@ -227,20 +228,10 @@ export default function BuyerNegotiations() {
     <div className="buyer-page buyer-app" id="buyer-app">
         {/* HEADER */}
         <header className="dash-header" style={{ background: 'var(--buyer-header-gradient)', paddingBottom: '1.5rem' }}>
-            <div className="dash-header-top">
-                <Link to="/buyer" className="dash-brand" aria-label="Back to Marketplace">
-                    <img src="/assets/images/logo.png" alt="AaharSetu" />
-                </Link>
-                <Link to="/buyer/profile" className="dash-profile-btn" aria-label="My Profile">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                </Link>
-            </div>
+            <BuyerHeaderTop />
             <div className="dash-header-greeting">
                 <h1 style={{fontSize:'1.5rem'}}>My Offers</h1>
-                <p>Manage your active offers</p>
+                <p>Manage your active negotiations</p>
             </div>
         </header>
 

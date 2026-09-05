@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useCart } from '../../hooks/useCart';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import { buyerService } from '../../services/buyerService';
+import BuyerHeaderTop from '../../components/buyer/BuyerHeaderTop';
 import BuyerBottomNav from '../../components/buyer/BuyerBottomNav';
 
 export default function BuyerDashboard() {
   const { user, profile } = useAuth();
+  const { addToCart } = useCart();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState(null);
@@ -28,6 +31,10 @@ export default function BuyerDashboard() {
   const [negMsg, setNegMsg] = useState('');
   const [negProcessing, setNegProcessing] = useState(false);
   const [negError, setNegError] = useState('');
+
+  // Cart state
+  const [cartAdding, setCartAdding] = useState(false);
+  const [cartAdded, setCartAdded] = useState(false);
 
   const loadListings = async () => {
     try {
@@ -70,6 +77,13 @@ export default function BuyerDashboard() {
       return () => { supabase.removeChannel(channel); };
     }
   }, [user]);
+
+  // Reset added state when active listing changes
+  useEffect(() => {
+    if (activeListing) {
+      setCartAdded(false);
+    }
+  }, [activeListing]);
 
   const calculateScore = (listing) => {
     if (!profile) return 0;
@@ -237,6 +251,24 @@ export default function BuyerDashboard() {
     }
   };
 
+  const handleAddToCart = async () => {
+    if (!activeListing || !reqQty) return;
+    setReqError('');
+    setCartAdding(true);
+    
+    try {
+      const { success, error } = await addToCart(activeListing, reqQty);
+      if (!success) throw new Error(error);
+      
+      setCartAdded(true);
+      setTimeout(() => setCartAdded(false), 3000);
+    } catch (err) {
+      setReqError(err.message || 'Failed to add to cart.');
+    } finally {
+      setCartAdding(false);
+    }
+  };
+
   const renderCard = (listing) => {
     const sortedImages = (listing.listing_images || []).sort((a, b) => a.sort_order - b.sort_order);
     const imgSrc = sortedImages[0]?.image_url;
@@ -284,20 +316,11 @@ export default function BuyerDashboard() {
     <div className="buyer-page buyer-app" id="buyer-app">
         {/* HEADER */}
         <header className="dash-header" style={{ background: 'var(--buyer-header-gradient)' }}>
-            <div className="dash-header-top">
-                <Link to="/buyer" className="dash-brand" aria-label="AnaajSetu Home">
-                    <img src="/assets/images/logo.png" alt="AnaajSetu" />
-                </Link>
-                <Link to="/buyer/profile" className="dash-profile-btn" aria-label="My Profile">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                </Link>
-            </div>
+            <BuyerHeaderTop />
             {profile ? (
                 <div className="dash-header-greeting">
                     <h1>Good morning, {profile.full_name?.split(' ')[0] || 'there'}</h1>
+                    <p>Find fresh local produce today</p>
                     <p>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{opacity:0.8, flexShrink:0}}>
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -577,12 +600,21 @@ export default function BuyerDashboard() {
                             </div>
                             
                             <div className="ld-action-buttons">
-                                <button className="btn btn-buyer-primary ld-btn-primary" onClick={submitRequest} disabled={reqProcessing}>
-                                    {reqProcessing ? 'Reserving...' : `Reserve for ₹${((Number(reqQty) || 0) * activeListing.price_per_unit).toFixed(2)}`}
+                                <button 
+                                    className="btn btn-buyer-primary ld-btn-primary" 
+                                    onClick={handleAddToCart} 
+                                    disabled={cartAdding || cartAdded}
+                                >
+                                    {cartAdding ? 'Adding...' : cartAdded ? 'Added to Cart!' : `Add to Cart — ₹${((Number(reqQty) || 0) * activeListing.price_per_unit).toFixed(2)}`}
                                 </button>
-                                <button className="btn btn-secondary ld-btn-secondary" onClick={() => setShowNegModal(true)}>
-                                    Make an Offer
-                                </button>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.75rem' }}>
+                                    <button className="btn btn-secondary ld-btn-secondary" onClick={submitRequest} disabled={reqProcessing}>
+                                        {reqProcessing ? 'Reserving...' : 'Reserve only'}
+                                    </button>
+                                    <button className="btn btn-secondary ld-btn-secondary" onClick={() => setShowNegModal(true)}>
+                                        Make an Offer
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

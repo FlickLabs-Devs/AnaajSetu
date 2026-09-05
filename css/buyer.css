@@ -1664,3 +1664,55 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
 }
+
+/* ============================================================
+   CART SYSTEM & BADGE
+   ============================================================ */
+.dash-cart-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+.buyer-cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--danger, #ef4444);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--buyer-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.cart-item-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cart-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.nested-order-card {
+    transition: background 0.2s;
+}
+
+.nested-order-card:hover {
+    background: var(--surface) !important;
+}

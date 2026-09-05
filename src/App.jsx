@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { CartProvider } from './hooks/useCart';
 
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -18,6 +19,7 @@ import BuyerRequests from './pages/buyer/BuyerRequests';
 import BuyerNegotiations from './pages/buyer/BuyerNegotiations';
 import BuyerOrders from './pages/buyer/BuyerOrders';
 import BuyerProfile from './pages/buyer/BuyerProfile';
+import BuyerCart from './pages/buyer/BuyerCart';
 import BuyerBottomNav from './components/buyer/BuyerBottomNav';
 
 // Simple placeholders to prevent routing errors during transition
@@ -45,31 +47,34 @@ const ProtectedRoute = ({ children, roleRequired }) => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          
-          {/* Seller Routes */}
-          <Route path="/seller" element={<ProtectedRoute roleRequired="farmer"><SellerDashboard /></ProtectedRoute>} />
-          <Route path="/seller/listings/new" element={<ProtectedRoute roleRequired="farmer"><ListingForm /></ProtectedRoute>} />
-          <Route path="/seller/listings/edit/:id" element={<ProtectedRoute roleRequired="farmer"><ListingForm /></ProtectedRoute>} />
-          
-          <Route path="/seller/negotiations" element={<ProtectedRoute roleRequired="farmer"><SellerNegotiations /></ProtectedRoute>} />
-          <Route path="/seller/requests" element={<ProtectedRoute roleRequired="farmer"><SellerRequests /></ProtectedRoute>} />
-          <Route path="/seller/orders" element={<ProtectedRoute roleRequired="farmer"><SellerOrders /></ProtectedRoute>} />
-          <Route path="/seller/profile" element={<ProtectedRoute roleRequired="farmer"><SellerProfile /></ProtectedRoute>} />
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            
+            {/* Seller Routes */}
+            <Route path="/seller" element={<ProtectedRoute roleRequired="farmer"><SellerDashboard /></ProtectedRoute>} />
+            <Route path="/seller/listings/new" element={<ProtectedRoute roleRequired="farmer"><ListingForm /></ProtectedRoute>} />
+            <Route path="/seller/listings/edit/:id" element={<ProtectedRoute roleRequired="farmer"><ListingForm /></ProtectedRoute>} />
+            
+            <Route path="/seller/negotiations" element={<ProtectedRoute roleRequired="farmer"><SellerNegotiations /></ProtectedRoute>} />
+            <Route path="/seller/requests" element={<ProtectedRoute roleRequired="farmer"><SellerRequests /></ProtectedRoute>} />
+            <Route path="/seller/orders" element={<ProtectedRoute roleRequired="farmer"><SellerOrders /></ProtectedRoute>} />
+            <Route path="/seller/profile" element={<ProtectedRoute roleRequired="farmer"><SellerProfile /></ProtectedRoute>} />
 
-          {/* Buyer Routes */}
-          <Route path="/buyer" element={<ProtectedRoute roleRequired="buyer"><BuyerDashboard /></ProtectedRoute>} />
-          <Route path="/buyer/requests" element={<ProtectedRoute roleRequired="buyer"><BuyerRequests /></ProtectedRoute>} />
-          <Route path="/buyer/negotiations" element={<ProtectedRoute roleRequired="buyer"><BuyerNegotiations /></ProtectedRoute>} />
-          <Route path="/buyer/orders" element={<ProtectedRoute roleRequired="buyer"><BuyerOrders /></ProtectedRoute>} />
-          <Route path="/buyer/profile" element={<ProtectedRoute roleRequired="buyer"><BuyerProfile /></ProtectedRoute>} />
-        </Routes>
-      </BrowserRouter>
+            {/* Buyer Routes */}
+            <Route path="/buyer" element={<ProtectedRoute roleRequired="buyer"><BuyerDashboard /></ProtectedRoute>} />
+            <Route path="/buyer/requests" element={<ProtectedRoute roleRequired="buyer"><BuyerRequests /></ProtectedRoute>} />
+            <Route path="/buyer/negotiations" element={<ProtectedRoute roleRequired="buyer"><BuyerNegotiations /></ProtectedRoute>} />
+            <Route path="/buyer/orders" element={<ProtectedRoute roleRequired="buyer"><BuyerOrders /></ProtectedRoute>} />
+            <Route path="/buyer/profile" element={<ProtectedRoute roleRequired="buyer"><BuyerProfile /></ProtectedRoute>} />
+            <Route path="/buyer/cart" element={<ProtectedRoute roleRequired="buyer"><BuyerCart /></ProtectedRoute>} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 }
