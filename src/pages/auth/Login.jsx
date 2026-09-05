@@ -1,0 +1,169 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+
+export default function Login() {
+  const { login, loginWithGoogle, user, profile, loading } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (!profile || !profile.role) {
+        navigate('/onboarding');
+      } else if (profile.role === 'farmer') {
+        navigate('/seller');
+      } else if (profile.role === 'buyer') {
+        navigate('/buyer');
+      } else {
+        navigate('/onboarding');
+      }
+    }
+  }, [user, profile, loading, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!email || !password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      setSuccess('Logged in! Redirecting...');
+    } catch (err) {
+      console.error(err);
+      setError('Incorrect email or password.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setSuccess('');
+    setIsSubmitting(true);
+    try {
+      await loginWithGoogle();
+      setSuccess('Google Login successful! Redirecting...');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to log in with Google.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading || (user && profile)) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner spinner-green"></div>
+        <span>Loading...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-panel-left" aria-hidden="true">
+        <div className="auth-panel-cards">
+          <div className="auth-panel-card-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Fresh Tomatoes — Guwahati
+          </div>
+          <div className="auth-panel-card-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            Spinach — 30 kg available
+          </div>
+          <div className="auth-panel-card-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+            Assam Harvest — Active
+          </div>
+        </div>
+        <div className="auth-panel-brand">
+          <div className="auth-panel-logo">
+            <img src="/assets/images/logo.png" alt="AaharSetu" style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+          </div>
+          <div className="auth-panel-tagline">Fresh produce.<br/>Local connections.</div>
+          <p className="auth-panel-sub">A hyperlocal marketplace that connects farmers directly with nearby buyers — restaurants, shops, households, and more.</p>
+        </div>
+      </div>
+
+      <div className="auth-panel-right">
+        <div className="auth-card">
+          <Link to="/" className="auth-logo-mobile">
+            <img src="/assets/images/logo.png" alt="AaharSetu" />
+          </Link>
+
+          <div className="auth-header">
+            <h1 className="auth-title">Welcome back.</h1>
+            <p className="auth-subtitle">Log in to your AaharSetu account to continue.</p>
+          </div>
+
+          {error && <div className="alert alert-error" style={{ display: 'block' }}>{error}</div>}
+          {success && <div className="alert alert-success" style={{ display: 'block' }}>{success}</div>}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">Email address</label>
+              <input 
+                type="email" 
+                id="email" 
+                className="form-control" 
+                placeholder="you@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">Password</label>
+              <input 
+                type="password" 
+                id="password" 
+                className="form-control" 
+                placeholder="Your password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary btn-block mt-4" disabled={isSubmitting}>
+              {isSubmitting ? <span className="spinner" style={{ display: 'inline-block' }}></span> : <span>Log in</span>}
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>OR</span>
+          </div>
+
+          <button 
+            type="button" 
+            className="btn btn-outline btn-block mt-3" 
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+            onClick={handleGoogleLogin}
+            disabled={isSubmitting}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.1 0 5.6 1.1 7.8 2.9l5.8-5.8C34.1 3.2 29.5 1 24 1 14.8 1 6.9 6.9 3 14.8l6.8 5.3C11.5 13 17.2 9.5 24 9.5z"/><path fill="#34A853" d="M46.5 24.5c0-1.6-.1-3.2-.4-4.8H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.2z"/><path fill="#FBBC05" d="M10.1 28.5c-.8-2.4-1.2-5-1.2-7.7s.4-5.3 1.2-7.7l-6.8-5.3C1.2 11.8 0 17.8 0 24s1.2 12.2 3.3 17.2l6.8-5.3z"/><path fill="#EA4335" d="M24 47c6.5 0 12-2.1 16-5.8l-7.5-5.8c-2.2 1.5-5 2.3-8.5 2.3-6.8 0-12.5-4.6-14.6-10.8l-6.8 5.3C6.9 41.1 14.8 47 24 47z"/></svg>
+            Continue with Google
+          </button>
+
+          <div className="auth-footer">
+            Don't have an account? <Link to="/register">Create one</Link>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
