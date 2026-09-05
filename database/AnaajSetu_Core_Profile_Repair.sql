@@ -1,5 +1,5 @@
 -- ============================================================
--- AaharSetu Core Profile Repair Migration
+-- AnaajSetu Core Profile Repair Migration
 -- Safe to run — uses IF NOT EXISTS and DROP IF EXISTS
 -- Does NOT drop profiles or listings tables
 -- ============================================================

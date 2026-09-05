@@ -1,4 +1,4 @@
--- AaharSetu Phase 3: Listings Database Migration
+-- AnaajSetu Phase 3: Listings Database Migration
 
 -- Create the listings table
 CREATE TABLE IF NOT EXISTS public.listings (

@@ -1,4 +1,4 @@
--- AaharSetu Phase 4: Buyer Requests
+-- AnaajSetu Phase 4: Buyer Requests
 
 CREATE TABLE IF NOT EXISTS public.requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

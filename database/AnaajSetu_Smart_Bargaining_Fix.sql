@@ -1,5 +1,5 @@
 -- ============================================================
--- AaharSetu Smart Bargaining Fix
+-- AnaajSetu Smart Bargaining Fix
 -- Enforces 3-counter limit in the database.
 -- ============================================================
 

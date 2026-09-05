@@ -1,4 +1,4 @@
--- AaharSetu Phase 3.1: Listing Enhancements
+-- AnaajSetu Phase 3.1: Listing Enhancements
 -- Adds minimum_order_quantity to listings table
 
 -- 1. Add the column (nullable initially to allow safe addition)

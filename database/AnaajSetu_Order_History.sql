@@ -1,4 +1,4 @@
--- AaharSetu Phase 6: Order History
+-- AnaajSetu Phase 6: Order History
 
 -- Create the orders table as a persistent snapshot of transactions
 CREATE TABLE IF NOT EXISTS public.orders (

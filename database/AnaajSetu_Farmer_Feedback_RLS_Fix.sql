@@ -1,4 +1,4 @@
--- AaharSetu Phase 8.1: Farmer Feedback RLS Fix
+-- AnaajSetu Phase 8.1: Farmer Feedback RLS Fix
 
 -- We are dropping the strictly authenticated insert/update policies because AaharSetu
 -- uses Firebase Authentication and connects to Supabase as 'anon'.

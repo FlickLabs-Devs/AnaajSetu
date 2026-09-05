@@ -1,4 +1,4 @@
--- AaharSetu Phase 6: Atomic Reservations
+-- AnaajSetu Phase 6: Atomic Reservations
 -- Fixes race conditions and prevents overbooking
 
 -- RPC to accept a request and decrement listing quantity atomically

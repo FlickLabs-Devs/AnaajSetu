@@ -1,4 +1,4 @@
--- AaharSetu Phase 7: Order OTP Completion
+-- AnaajSetu Phase 7: Order OTP Completion
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 

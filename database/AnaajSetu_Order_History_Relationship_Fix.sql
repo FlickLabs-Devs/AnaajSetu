@@ -1,4 +1,4 @@
--- AaharSetu_Order_History_Relationship_Fix.sql
+-- AnaajSetu_Order_History_Relationship_Fix.sql
 -- Fix missing foreign key relationship between orders and listings
 
 DO $$

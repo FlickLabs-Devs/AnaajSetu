@@ -1,4 +1,4 @@
--- AaharSetu Phase 8: Verified Farmer Feedback
+-- AnaajSetu Phase 8: Verified Farmer Feedback
 
 -- 1. Create the farmer_reviews table
 CREATE TABLE IF NOT EXISTS public.farmer_reviews (

@@ -1,6 +1,6 @@
 -- ============================================================
--- AaharSetu Smart Bargaining Migration
--- Safe to run against the existing AaharSetu database
+-- AnaajSetu Smart Bargaining Migration
+-- Safe to run against the existing AnaajSetu database
 -- ============================================================
 
 -- ============================================================

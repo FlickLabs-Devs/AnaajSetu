@@ -1,4 +1,4 @@
--- database/AaharSetu_Listing_Storage_Fix.sql
+-- database/AnaajSetu_Listing_Storage_Fix.sql
 -- Fixes the 403 / "new row violates row-level security policy" error on upload
 -- by explicitly granting the anon role (used by Firebase) INSERT permission
 -- on the 'listings' bucket.
