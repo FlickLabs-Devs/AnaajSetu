@@ -31,6 +31,21 @@ function fetchGovData(url, timeoutMs = 4000) {
     });
 }
 
+function normalizeCommodity(value) {
+    if (!value) return '';
+    let normalized = String(value).toLowerCase().trim().replace(/\s+/g, ' ');
+    if (normalized === 'potatoes') return 'potato';
+    if (normalized === 'tomatoes') return 'tomato';
+    if (normalized === 'onions') return 'onion';
+    if (normalized === 'chilli' || normalized === 'chili' || normalized === 'green chilies' || normalized === 'green chillies') return 'green chilli';
+    return normalized;
+}
+
+function normalizeLocation(value) {
+    if (!value) return '';
+    return String(value).toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
 function getFallbackData(commodity, state, district) {
     const supportedCommodities = [
         "Tomato", "Potato", "Rice", "Wheat", "Onion", "Garlic", "Ginger", 
@@ -40,11 +55,15 @@ function getFallbackData(commodity, state, district) {
         "Orange", "Papaya", "Pineapple", "Turmeric"
     ];
 
-    const matchCommodity = supportedCommodities.find(c => c.toLowerCase() === (commodity || '').toLowerCase());
+    const normalizedInput = normalizeCommodity(commodity);
+    const matchCommodity = supportedCommodities.find(c => c.toLowerCase() === normalizedInput);
     
     if (!matchCommodity) return null;
 
-    const hashStr = `${matchCommodity}-${state}-${district}`.toLowerCase();
+    const normState = normalizeLocation(state);
+    const normDistrict = normalizeLocation(district);
+
+    const hashStr = `${matchCommodity}-${normState}-${normDistrict}`.toLowerCase();
     let hash = 0;
     for (let i = 0; i < hashStr.length; i++) {
         hash = ((hash << 5) - hash) + hashStr.charCodeAt(i);
@@ -195,17 +214,8 @@ export default async (req, context) => {
                 }
             } catch (e) {
                 console.error("Error fetching/parsing data.gov.in response:", e);
-                // Return a controlled 502/503 if the upstream times out or returns a 5xx error
-                if (e.message.includes("timed out") || e.message.includes("Upstream returned 5") || e.message.includes("Empty response") || e.message.includes("Failed to parse")) {
-                    return new Response(JSON.stringify({
-                        success: false,
-                        error: "Mandi market service temporarily unavailable"
-                    }), {
-                        status: 502,
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                }
-                break; // break loop and try fallback for other errors
+                console.warn("[Mandi] Live API unavailable, proceeding to local fallback");
+                break; // break loop and try fallback for any errors
             }
         }
     }

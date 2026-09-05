@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getFallbackData } from '../../data/mandiReference';
 
 const mandiCache = new Map();
 
@@ -37,7 +38,7 @@ export default function MandiReference({ produceName, state, district, price, qu
 
   useEffect(() => {
     const fetchMandi = async () => {
-      const hasAllData = produceName && state && district && !state.includes('Select') && !district.includes('Select');
+      const hasAllData = produceName && produceName.trim().length >= 2 && state && district && !state.includes('Select') && !district.includes('Select');
       if (!hasAllData) {
         setData(null);
         setError(false);
@@ -67,8 +68,20 @@ export default function MandiReference({ produceName, state, district, price, qu
         mandiCache.set(cacheKey, newData);
         setData(newData);
       } catch (err) {
-        console.error("Error fetching mandi prices:", err);
-        setError(true);
+        console.warn("[Mandi] Live API request failed, using local reference data. Error:", err.message);
+        const fallbackData = getFallbackData(produceName, state, district);
+        
+        if (fallbackData) {
+            const newData = { 
+                record: fallbackData.record, 
+                matchLevel: fallbackData.matchLevel, 
+                source: 'fallback' 
+            };
+            mandiCache.set(cacheKey, newData);
+            setData(newData);
+        } else {
+            setData({ reason: "NO_DATA_AVAILABLE" });
+        }
       } finally {
         setLoading(false);
       }
@@ -95,17 +108,17 @@ export default function MandiReference({ produceName, state, district, price, qu
     );
   }
 
-  const hasAllData = produceName && state && district && !state.includes('Select') && !district.includes('Select');
+  const hasAllData = produceName && produceName.trim().length >= 2 && state && district && !state.includes('Select') && !district.includes('Select');
 
   if (!hasAllData) {
     const isPartial = produceName || (state && !state.includes('Select'));
     return (
-      <div className="form-section mandi-reference mandi-advisory" style={{background: 'var(--surface-alt)'}}>
-        <div className="mandi-reference-header" style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-          <span className="mandi-icon">🏷️</span>
-          <span className="form-section-title" style={{margin: 0}}>Local Mandi Price</span>
+      <div className="form-section mandi-reference mandi-advisory" style={{background: 'var(--surface-alt)', minWidth: 0, overflow: 'hidden'}}>
+        <div className="mandi-reference-header" style={{display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0}}>
+          <span className="mandi-icon" style={{flexShrink: 0}}>🏷️</span>
+          <span className="form-section-title" style={{margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>Local Mandi Price</span>
         </div>
-        <p className="mandi-reference-subtitle" style={{marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)'}}>
+        <p className="mandi-reference-subtitle" style={{marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)', minWidth: 0, wordBreak: 'break-word'}}>
           {isPartial ? 'Complete produce, state and district to check local mandi prices.' : 'Fill in your produce, state and district to see the latest nearby government mandi price range.'}
         </p>
       </div>
@@ -116,9 +129,11 @@ export default function MandiReference({ produceName, state, district, price, qu
     const { reason } = data || {};
     const noData = reason === "NO_DATA_AVAILABLE" || reason === "NO_MATCHING_RECORDS";
     return (
-      <div className="form-section mandi-reference mandi-empty" style={{background: 'var(--surface-alt)'}}>
-        <span className="form-section-title">Local Mandi Price</span>
-        <p style={{fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0}}>{noData ? 'No recent mandi data found for this exact location and produce.' : 'Local mandi data isn\'t available for this produce and location yet.'}</p>
+      <div className="form-section mandi-reference mandi-empty" style={{background: 'var(--surface-alt)', minWidth: 0}}>
+        <span className="form-section-title" style={{display: 'block', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>Local Mandi Price</span>
+        <p style={{fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0, minWidth: 0, wordBreak: 'break-word'}}>
+            {noData ? 'Reference unavailable for this exact location and produce.' : 'Reference unavailable for this produce and location yet.'}
+        </p>
       </div>
     );
   }
@@ -173,10 +188,10 @@ export default function MandiReference({ produceName, state, district, price, qu
   let fallbackMessageHtml = null;
 
   if (source === 'fallback') {
-      titleText = 'Indicative mandi reference';
-      fallbackMessageHtml = <p className="mandi-status fallback text-info text-sm mt-2">Recent mandi data.</p>;
+      titleText = 'Local Mandi Reference';
+      fallbackMessageHtml = <p className="mandi-status fallback text-info text-sm mt-2" style={{minWidth: 0, wordBreak: 'break-word'}}>Using local reference while live market data is unavailable.</p>;
   } else {
-      titleText = 'Government mandi reference';
+      titleText = 'Live Mandi Data';
       if (matchLevel && matchLevel !== 'exact' && matchLevel !== 'district_commodity' && matchLevel !== 'district') {
           fallbackMessageHtml = <p className="mandi-status fallback text-info text-sm mt-2">Showing the latest available mandi reference for your area/state.</p>;
       } else if (matchLevel === 'district') {
@@ -185,15 +200,16 @@ export default function MandiReference({ produceName, state, district, price, qu
   }
 
   return (
-    <div className="form-section mandi-reference" style={{background: 'var(--seller-primary-softer)', borderColor: 'var(--seller-primary-soft)'}}>
-      <div className="mandi-reference-header" style={{display: 'flex', flexDirection: 'column'}}>
-          <span className="form-section-title" style={{margin: 0}}>● {titleText}</span>
-          <span style={{fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem'}}>{record.district} / {record.market || 'Unknown Market'}</span>
+    <div className="form-section mandi-reference" style={{background: 'var(--seller-primary-softer)', borderColor: 'var(--seller-primary-soft)', minWidth: 0, overflow: 'hidden', width: '100%', boxSizing: 'border-box'}}>
+      <div className="mandi-reference-header" style={{display: 'flex', flexDirection: 'column', minWidth: 0}}>
+          <span className="form-section-title" style={{margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>● {titleText}</span>
+          <span style={{fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{record.district} / {record.market || 'Unknown Market'}</span>
       </div>
       
-      <div className="mandi-body" style={{marginTop: '1rem'}}>
-          <div className="mandi-price-range">
-              <span style={{fontSize: '1.125rem', fontWeight: 700, color: 'var(--text)'}}>₹{minPriceKg} - ₹{maxPriceKg} <span style={{fontSize: '0.875rem', fontWeight: 'normal', color: 'var(--text-muted)'}}>/ kg</span></span>
+      <div className="mandi-body" style={{marginTop: '1rem', minWidth: 0}}>
+          <div className="mandi-price-range" style={{minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0.25rem'}}>
+              <span style={{fontSize: '1.125rem', fontWeight: 700, color: 'var(--text)', wordBreak: 'break-word'}}>₹{minPriceKg} - ₹{maxPriceKg}</span>
+              <span style={{fontSize: '0.875rem', fontWeight: 'normal', color: 'var(--text-muted)', whiteSpace: 'nowrap'}}>/ kg</span>
           </div>
           <div className="mandi-price-modal" style={{fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.25rem'}}>
               Typical: ₹{modalPriceKg} / kg
