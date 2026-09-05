@@ -221,7 +221,7 @@ export default function BuyerProfile() {
           <span>Buyer</span>
         </div>
         {!isEditing && (
-          <button className="btn btn-buyer-primary" style={{borderRadius: 'var(--radius-full)', padding: '0.5rem 1.25rem', fontSize: '0.875rem'}} onClick={handleEditClick}>
+          <button className="buyer-profile-edit-btn" onClick={handleEditClick}>
             ✎ Edit Profile
           </button>
         )}
