@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 import { supabase } from '../../lib/supabase';
 
 export default function SellerOrders() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, accepted, completed, cancelled
@@ -130,7 +132,7 @@ export default function SellerOrders() {
                 setOtpError('Incorrect OTP. Ask the buyer to confirm the code and try again.');
             }
         } else if (data === true) {
-            alert("Order completed successfully!");
+            showToast({ type: 'success', title: 'Order Completed', message: 'Order completed successfully!' });
             setShowOtpModal(false);
             setOtpValue("");
             loadOrders();

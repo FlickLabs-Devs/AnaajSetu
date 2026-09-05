@@ -4,14 +4,17 @@ import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import BuyerBottomNav from '../../components/buyer/BuyerBottomNav';
 import BuyerHeaderTop from '../../components/buyer/BuyerHeaderTop';
+import { useToast } from '../../hooks/useToast';
+import { useConfirm } from '../../hooks/useConfirm';
+import { getFriendlyErrorMessage } from '../../utils/userMessages';
 
 export default function BuyerRequests() {
   const { user } = useAuth();
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelId, setCancelId] = useState(null);
   const [error, setError] = useState(null);
 
   const loadRequests = async () => {
@@ -78,18 +81,22 @@ export default function BuyerRequests() {
     }
   }, [user]);
 
-  const handleCancel = async () => {
-    if (!cancelId) return;
-    setCancelling(true);
+  const handleCancel = async (id) => {
+    const isConfirmed = await confirm({
+        title: "Cancel Request?",
+        message: "Are you sure you want to cancel this request? This action cannot be undone.",
+        confirmText: "Yes, Cancel",
+        isDanger: true
+    });
+    if (!isConfirmed) return;
+    
     try {
-      const { error } = await supabase.from('requests').update({ status: 'cancelled' }).eq('id', cancelId);
+      const { error } = await supabase.from('requests').update({ status: 'cancelled' }).eq('id', id);
       if (error) throw error;
-      setCancelId(null);
+      showToast({ type: 'success', title: 'Request cancelled', message: 'Your request has been cancelled.' });
     } catch (err) {
       console.error(err);
-      alert("Failed to cancel request.");
-    } finally {
-      setCancelling(false);
+      showToast({ type: 'error', title: 'Action failed', message: getFriendlyErrorMessage(err) });
     }
   };
 
@@ -209,7 +216,7 @@ export default function BuyerRequests() {
                                 </div>
                                 {req.status === 'pending' && (
                                     <div className="brc-actions">
-                                        <button className="btn btn-outline-danger btn-sm" onClick={() => setCancelId(req.id)}>
+                                        <button className="btn btn-outline-danger btn-sm" onClick={() => handleCancel(req.id)}>
                                             Cancel
                                         </button>
                                     </div>
@@ -221,27 +228,6 @@ export default function BuyerRequests() {
             )}
         </div>
 
-        {/* CANCEL MODAL */}
-        {cancelId && (
-            <div className="modal-overlay">
-                <div className="modal-content text-center" style={{maxWidth:'340px'}}>
-                    <div style={{width:'56px', height:'56px', background:'var(--danger-bg)', color:'var(--danger)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 1.25rem'}}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </div>
-                    <h3 style={{fontSize:'1.125rem', marginBottom:'0.5rem', color:'var(--text)'}}>Cancel Request?</h3>
-                    <p className="text-muted" style={{fontSize:'0.875rem', marginBottom:'1.5rem', lineHeight:1.5}}>Are you sure you want to cancel this request? This action cannot be undone.</p>
-                    <div style={{display:'flex', gap:'0.75rem'}}>
-                        <button className="btn btn-secondary flex-1" disabled={cancelling} onClick={() => setCancelId(null)}>Keep it</button>
-                        <button className="btn btn-danger flex-1" disabled={cancelling} onClick={handleCancel}>
-                            {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
         <BuyerBottomNav />
     </div>
   );

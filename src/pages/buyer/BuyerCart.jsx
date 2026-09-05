@@ -5,19 +5,20 @@ import BuyerHeaderTop from '../../components/buyer/BuyerHeaderTop';
 import BuyerBottomNav from '../../components/buyer/BuyerBottomNav';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
+import { getFriendlyErrorMessage } from '../../utils/userMessages';
 
 export default function BuyerCart() {
   const { user } = useAuth();
   const { cartItems, cartTotal, loadingCart, updateQuantity, removeFromCart, clearCartLocal } = useCart();
   const [checkingOut, setCheckingOut] = useState(false);
-  const [checkoutError, setCheckoutError] = useState('');
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleCheckout = async () => {
     if (!user) return;
     setCheckingOut(true);
-    setCheckoutError('');
 
     try {
       const { data, error } = await supabase.rpc('checkout_cart', { p_buyer_id: user.uid });
@@ -37,7 +38,7 @@ export default function BuyerCart() {
       }
     } catch (err) {
       console.error('Checkout error:', err);
-      setCheckoutError(err.message || 'An error occurred during checkout. Please try again.');
+      showToast({ type: 'error', title: 'Checkout Failed', message: getFriendlyErrorMessage(err) });
     } finally {
       setCheckingOut(false);
     }
@@ -195,12 +196,6 @@ export default function BuyerCart() {
                 <span>Total Amount</span>
                 <span>₹{cartTotal.toFixed(2)}</span>
               </div>
-
-              {checkoutError && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '1rem', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', marginBottom: '1.5rem', fontWeight: 600, borderLeft: '3px solid var(--danger)' }}>
-                  {checkoutError}
-                </div>
-              )}
 
               <button 
                 className="btn btn-buyer-primary w-100" 

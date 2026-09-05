@@ -4,9 +4,14 @@ import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import BuyerBottomNav from '../../components/buyer/BuyerBottomNav';
 import BuyerHeaderTop from '../../components/buyer/BuyerHeaderTop';
+import { useToast } from '../../hooks/useToast';
+import { useConfirm } from '../../hooks/useConfirm';
+import { getFriendlyErrorMessage } from '../../utils/userMessages';
 
 export default function BuyerNegotiations() {
   const { user } = useAuth();
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const [negotiations, setNegotiations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -143,34 +148,45 @@ export default function BuyerNegotiations() {
       }).eq('id', activeNeg.id);
 
       setShowCounter(false);
-      alert("Counter offer sent!");
+      showToast({ type: 'success', title: 'Offer sent', message: 'Your counter offer has been sent.' });
     } catch (err) {
       console.error(err);
-      setCounterError("Failed to send counter offer.");
+      setCounterError(getFriendlyErrorMessage(err));
     } finally {
       setProcessing(false);
     }
   };
 
   const handleReject = async () => {
-    if (!window.confirm("Are you sure you want to reject this offer? The negotiation will end.")) return;
+    const isConfirmed = await confirm({
+        title: "Reject this offer?",
+        message: "The negotiation will end and cannot be reopened.",
+        confirmText: "Reject Offer",
+        isDanger: true
+    });
+    if (!isConfirmed) return;
     setProcessing(true);
     try {
         const lastOffer = offers[offers.length - 1];
         await supabase.from('negotiation_offers').update({ status: 'rejected' }).eq('id', lastOffer.id);
         await supabase.from('negotiations').update({ status: 'rejected' }).eq('id', activeNeg.id);
-        alert("Negotiation rejected.");
+        showToast({ type: 'info', title: 'Negotiation declined', message: 'The farmer has been notified.' });
         setActiveNeg(null);
     } catch (err) {
         console.error(err);
-        alert("Failed to reject negotiation.");
+        showToast({ type: 'error', title: 'Action failed', message: getFriendlyErrorMessage(err) });
     } finally {
         setProcessing(false);
     }
   };
 
   const handleAccept = async () => {
-    if (!window.confirm("Accept this offer? This will automatically create an order.")) return;
+    const isConfirmed = await confirm({
+        title: "Accept this offer?",
+        message: "This will automatically create a final order.",
+        confirmText: "Accept Offer"
+    });
+    if (!isConfirmed) return;
     setProcessing(true);
     try {
         const lastOffer = offers[offers.length - 1];
@@ -212,11 +228,11 @@ export default function BuyerNegotiations() {
             });
         }
 
-        alert("Negotiation accepted! Order created.");
+        showToast({ type: 'success', title: 'Offer accepted', message: 'The order has been created successfully.' });
         setActiveNeg(null);
     } catch (err) {
         console.error(err);
-        alert(err.message || "Failed to accept negotiation.");
+        showToast({ type: 'error', title: 'Action failed', message: getFriendlyErrorMessage(err) });
     } finally {
         setProcessing(false);
     }

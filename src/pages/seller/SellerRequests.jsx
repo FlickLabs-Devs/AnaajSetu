@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useToast } from '../../hooks/useToast';
+import { getFriendlyErrorMessage } from '../../utils/userMessages';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 
 export default function SellerRequests() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending');
@@ -126,10 +130,10 @@ export default function SellerRequests() {
       setActiveRequest(null);
       setConfirmAction(null);
       loadRequests();
-      alert(`Request ${type}ed successfully`);
+      showToast({ type: 'success', title: `Request ${type}ed`, message: `The request was ${type}ed successfully.` });
     } catch (err) {
       console.error(err);
-      alert(err.message || `Failed to ${type} request`);
+      showToast({ type: 'error', title: 'Action failed', message: getFriendlyErrorMessage(err) });
     } finally {
       setProcessing(false);
     }
