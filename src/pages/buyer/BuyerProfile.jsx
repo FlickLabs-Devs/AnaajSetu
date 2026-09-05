@@ -55,8 +55,12 @@ export default function BuyerProfile() {
   };
 
   if (!profile) return (
-    <div className="loading-screen">
-      <div className="spinner spinner-indigo"></div>
+    <div className="buyer-page-loader full-screen">
+      <div className="bpl-logo-wrap">
+        <img src="/assets/images/logo.png" alt="AnaajSetu" className="bpl-logo" />
+        <div className="bpl-ring"></div>
+      </div>
+      <div className="bpl-text">Loading profile...</div>
     </div>
   );
 

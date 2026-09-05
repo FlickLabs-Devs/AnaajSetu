@@ -133,8 +133,12 @@ export default function BuyerRequests() {
         {/* Requests Grid */}
         <div className="buyer-req-list">
             {loading ? (
-                <div style={{textAlign:'center', padding:'2rem'}}>
-                    <div className="spinner spinner-primary"></div>
+                <div className="buyer-page-loader">
+                    <div className="bpl-logo-wrap">
+                        <img src="/assets/images/logo.png" alt="AnaajSetu" className="bpl-logo" />
+                        <div className="bpl-ring"></div>
+                    </div>
+                    <div className="bpl-text">Loading requests...</div>
                 </div>
             ) : error ? (
                 <div className="buyer-empty-state">

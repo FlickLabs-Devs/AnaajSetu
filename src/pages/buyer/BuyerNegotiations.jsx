@@ -261,8 +261,12 @@ export default function BuyerNegotiations() {
         {/* NEGOTIATIONS LIST */}
         <div className="negotiation-container">
             {loading ? (
-                <div style={{textAlign:'center', padding:'2rem'}}>
-                    <div className="spinner spinner-primary"></div>
+                <div className="buyer-page-loader">
+                    <div className="bpl-logo-wrap">
+                        <img src="/assets/images/logo.png" alt="AnaajSetu" className="bpl-logo" />
+                        <div className="bpl-ring"></div>
+                    </div>
+                    <div className="bpl-text">Loading offers...</div>
                 </div>
             ) : error ? (
                 <div className="empty-state" style={{marginTop:'1rem'}}>

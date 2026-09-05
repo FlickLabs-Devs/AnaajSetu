@@ -1599,4 +1599,68 @@
     .buyer-app .listings-grid { grid-template-columns: 1fr; }
 }
 
+/* ============================================================
+   BUYER PAGE LOADER (Transition / Data Fetching)
+   ============================================================ */
+.buyer-page-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    min-height: 50vh;
+    width: 100%;
+}
 
+.buyer-page-loader.full-screen {
+    min-height: 100vh;
+    background: var(--background);
+}
+
+.bpl-logo-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+}
+
+.bpl-logo {
+    width: 44px;
+    height: auto;
+    object-fit: contain;
+    z-index: 2;
+    animation: bpl-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.bpl-ring {
+    position: absolute;
+    inset: 0;
+    border: 2.5px solid var(--buyer-primary-soft);
+    border-top-color: var(--buyer-primary);
+    border-radius: 50%;
+    animation: bpl-spin 1s linear infinite;
+}
+
+.bpl-text {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--buyer-primary);
+    letter-spacing: 0.02em;
+    animation: bpl-fade 2s ease-in-out infinite;
+    text-transform: uppercase;
+}
+
+@keyframes bpl-spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes bpl-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.92); opacity: 0.85; }
+}
+@keyframes bpl-fade {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
