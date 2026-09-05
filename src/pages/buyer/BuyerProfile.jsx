@@ -232,7 +232,7 @@ export default function BuyerProfile() {
           <form className="profile-section-card" style={{padding: '1.5rem'}} onSubmit={handleSave}>
             <h3 style={{marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 700}}>Edit Profile</h3>
             
-            <FormErrorSummary errors={formErrors} />
+            <FormErrorSummary errors={Object.keys(formErrors).map(key => ({ fieldId: `profile-${key}`, message: formErrors[key] }))} />
 
             <div className="form-group">
               <label htmlFor="profile-full_name" className="form-label">Full Name</label>
