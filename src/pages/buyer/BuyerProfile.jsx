@@ -213,22 +213,24 @@ export default function BuyerProfile() {
       <div className="profile-header-card" aria-label="Profile header">
         <div className="profile-avatar" aria-hidden="true">{initials}</div>
         <div className="profile-name">{profile.full_name}</div>
-        <div className="profile-role-badge" style={{marginBottom: '1rem'}}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span>Buyer</span>
-        </div>
-        {!isEditing && (
-          <button className="btn btn-buyer-primary buyer-profile-edit-btn" onClick={handleEditClick}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" aria-hidden="true" style={{marginRight: '0.25rem'}}>
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <div className="profile-role-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
-            Edit Profile
-          </button>
-        )}
+            <span>Buyer</span>
+          </div>
+          {!isEditing && (
+            <button className="buyer-profile-edit-btn" onClick={handleEditClick}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              <span>Edit Profile</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="profile-body">
