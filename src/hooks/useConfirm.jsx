@@ -6,10 +6,11 @@ export function ConfirmProvider({ children }) {
   const [confirmState, setConfirmState] = useState(null);
 
   const confirm = useCallback((options) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setConfirmState({
         ...options,
         resolve,
+        reject,
       });
     });
   }, []);
@@ -28,6 +29,13 @@ export function ConfirmProvider({ children }) {
     }
   }, [confirmState]);
 
+  const handleError = useCallback((error) => {
+    if (confirmState) {
+      confirmState.reject(error);
+      setConfirmState(null);
+    }
+  }, [confirmState]);
+
   const value = useMemo(() => ({ confirm }), [confirm]);
 
   return (
@@ -41,6 +49,7 @@ export function ConfirmProvider({ children }) {
           cancelText={confirmState.cancelText || 'Cancel'}
           onConfirm={handleConfirm}
           onCancel={handleClose}
+          onError={handleError}
           isDanger={confirmState.isDanger}
           action={confirmState.action}
           loadingText={confirmState.loadingText}
@@ -58,7 +67,7 @@ export function useConfirm() {
   return context;
 }
 
-function ConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel, isDanger, action, loadingText }) {
+function ConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel, onError, isDanger, action, loadingText }) {
   const dialogRef = useRef(null);
   const cancelBtnRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,7 +80,7 @@ function ConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onC
         onConfirm();
       } catch (error) {
         setIsSubmitting(false);
-        // Error handling occurs in the action
+        if (onError) onError(error);
       }
     } else {
       onConfirm();

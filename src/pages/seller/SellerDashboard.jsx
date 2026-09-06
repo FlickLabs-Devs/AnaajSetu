@@ -80,43 +80,42 @@ export default function SellerDashboard() {
   };
 
   const handleDeleteClick = async (listing) => {
-    const isConfirmed = await confirm({
-      title: 'Delete this listing?',
-      message: 'Are you sure you want to delete this listing? This action cannot be undone.',
-      confirmText: 'Delete Listing',
-      cancelText: 'Cancel',
-      isDanger: true,
-      loadingText: 'Deleting...',
-      action: async () => {
-        try {
+    try {
+      const isConfirmed = await confirm({
+        title: 'Delete this listing?',
+        message: 'Are you sure you want to delete this listing? This action cannot be undone.',
+        confirmText: 'Delete Listing',
+        cancelText: 'Cancel',
+        isDanger: true,
+        loadingText: 'Deleting...',
+        action: async () => {
           await sellerService.deleteListing(listing.id, user.uid, listing.listing_images);
-        } catch (e) {
-          if (e.message === 'HAS_ACTIVE_TRANSACTIONS') {
-            showToast({
-              type: 'error',
-              title: "Couldn't delete listing",
-              message: "This listing has active orders or requests. Please mark it as 'Paused' or 'Sold Out' instead."
-            });
-          } else {
-            showToast({
-              type: 'error',
-              title: "Couldn't delete listing",
-              message: "We couldn't remove this listing right now. Please try again."
-            });
-          }
-          throw e;
         }
-      }
-    });
-
-    if (isConfirmed) {
-      setListings(prev => prev.filter(l => l.id !== listing.id));
-      if (selectedListing?.id === listing.id) setSelectedListing(null);
-      showToast({
-        type: 'success',
-        title: 'Listing deleted',
-        message: 'Your listing has been removed successfully.'
       });
+
+      if (isConfirmed) {
+        setListings(prev => prev.filter(l => l.id !== listing.id));
+        if (selectedListing?.id === listing.id) setSelectedListing(null);
+        showToast({
+          type: 'success',
+          title: "Listing deleted",
+          message: "Your listing has been removed successfully."
+        });
+      }
+    } catch (e) {
+      if (e.message === 'HAS_ACTIVE_TRANSACTIONS') {
+        showToast({
+          type: 'error',
+          title: "Couldn't delete listing",
+          message: "This listing has active orders or requests. Please mark it as 'Paused' or 'Sold Out' instead."
+        });
+      } else {
+        showToast({
+          type: 'error',
+          title: "Couldn't delete listing",
+          message: "We couldn't remove this listing right now. Please try again."
+        });
+      }
     }
   };
 
