@@ -40,11 +40,16 @@ export const sellerService = {
       throw new Error('HAS_ACTIVE_TRANSACTIONS');
     }
 
-    // 1. Delete images from storage
-    if (listingImages.length > 0) {
+    // 1. Delete images from storage and database
+    if (listingImages && listingImages.length > 0) {
       const paths = listingImages.map(i => i.storage_path).filter(Boolean);
       if (paths.length > 0) {
         await supabase.storage.from('listings').remove(paths);
+      }
+      
+      const imageIds = listingImages.map(i => i.id);
+      if (imageIds.length > 0) {
+        await supabase.from('listing_images').delete().in('id', imageIds);
       }
     }
     // 2. Delete listing
@@ -53,7 +58,13 @@ export const sellerService = {
       .delete()
       .eq('id', listingId)
       .eq('farmer_id', farmerId);
-    if (error) throw error;
+      
+    if (error) {
+      if (error.code === '23503') {
+        throw new Error('HAS_HISTORICAL_TRANSACTIONS');
+      }
+      throw error;
+    }
   },
 
   // Requests count
