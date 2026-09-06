@@ -42,6 +42,8 @@ export function ConfirmProvider({ children }) {
           onConfirm={handleConfirm}
           onCancel={handleClose}
           isDanger={confirmState.isDanger}
+          action={confirmState.action}
+          loadingText={confirmState.loadingText}
         />
       )}
     </ConfirmContext.Provider>
@@ -56,13 +58,30 @@ export function useConfirm() {
   return context;
 }
 
-function ConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel, isDanger }) {
+function ConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel, isDanger, action, loadingText }) {
   const dialogRef = useRef(null);
   const cancelBtnRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleConfirmClick = async () => {
+    if (action) {
+      setIsSubmitting(true);
+      try {
+        await action();
+        onConfirm();
+      } catch (error) {
+        setIsSubmitting(false);
+        // Error handling occurs in the action
+      }
+    } else {
+      onConfirm();
+    }
+  };
 
   useEffect(() => {
     // Trap focus inside dialog
     const handleKeyDown = (e) => {
+      if (isSubmitting) return; // Disable keyboard navigation while submitting
       if (e.key === 'Escape') {
         onCancel();
       }
@@ -119,14 +138,16 @@ function ConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onC
             ref={cancelBtnRef}
             className="btn btn-secondary" 
             onClick={onCancel}
+            disabled={isSubmitting}
           >
             {cancelText}
           </button>
           <button 
             className={`btn ${isDanger ? 'btn-danger' : 'btn-buyer-primary'}`} 
-            onClick={onConfirm}
+            onClick={handleConfirmClick}
+            disabled={isSubmitting}
           >
-            {confirmText}
+            {isSubmitting ? (loadingText || 'Processing...') : confirmText}
           </button>
         </div>
       </div>

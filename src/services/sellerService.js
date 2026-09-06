@@ -25,6 +25,21 @@ export const sellerService = {
   },
 
   async deleteListing(listingId, farmerId, listingImages = []) {
+    // 0. Safety check for existing transactions
+    const [
+      { count: reqCount },
+      { count: negCount },
+      { count: ordCount }
+    ] = await Promise.all([
+      supabase.from('requests').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).in('status', ['pending', 'accepted']),
+      supabase.from('negotiations').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).in('status', ['active', 'accepted']),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).in('status', ['accepted', 'processing'])
+    ]);
+
+    if ((reqCount || 0) > 0 || (negCount || 0) > 0 || (ordCount || 0) > 0) {
+      throw new Error('HAS_ACTIVE_TRANSACTIONS');
+    }
+
     // 1. Delete images from storage
     if (listingImages.length > 0) {
       const paths = listingImages.map(i => i.storage_path).filter(Boolean);

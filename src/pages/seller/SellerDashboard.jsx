@@ -4,6 +4,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { sellerService } from '../../services/sellerService';
 import SellerBottomNav from '../../components/seller/SellerBottomNav';
+import { useConfirm } from '../../hooks/useConfirm';
+import { useToast } from '../../hooks/useToast';
 
 export default function SellerDashboard() {
   const { user, profile } = useAuth();
@@ -14,10 +16,11 @@ export default function SellerDashboard() {
   const [reputation, setReputation] = useState(null);
   const [farmerProfile, setFarmerProfile] = useState(null);
   
-  const [deleteId, setDeleteId] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
-  const [toast, setToast] = useState(null);
   const [showAllInsights, setShowAllInsights] = useState(false);
+  
+  const { confirm } = useConfirm();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (!user) return;
@@ -59,34 +62,54 @@ export default function SellerDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 2800);
-  };
-
   const handleUpdateStatus = async (id, newStatus) => {
     try {
       await sellerService.updateListingStatus(id, user.uid, newStatus);
       setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
     } catch (e) {
       console.error(e);
-      showToast('Could not update status.', 'error');
+      showToast({ title: 'Error', message: 'Could not update status.', type: 'error' });
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!deleteId) return;
-    const target = listings.find(l => l.id === deleteId);
-    if (!target) return;
-    
-    setDeleteId(null);
-    try {
-      await sellerService.deleteListing(deleteId, user.uid, target.listing_images);
-      setListings(prev => prev.filter(l => l.id !== deleteId));
-      showToast('Listing deleted.', 'success');
-    } catch (e) {
-      console.error(e);
-      showToast('Could not delete the listing.', 'error');
+  const handleDeleteClick = async (listing) => {
+    const isConfirmed = await confirm({
+      title: 'Delete this listing?',
+      message: 'Are you sure you want to delete this listing? This action cannot be undone.',
+      confirmText: 'Delete Listing',
+      cancelText: 'Cancel',
+      isDanger: true,
+      loadingText: 'Deleting...',
+      action: async () => {
+        try {
+          await sellerService.deleteListing(listing.id, user.uid, listing.listing_images);
+        } catch (e) {
+          if (e.message === 'HAS_ACTIVE_TRANSACTIONS') {
+            showToast({
+              type: 'error',
+              title: "Couldn't delete listing",
+              message: "This listing has active orders or requests. Please mark it as 'Paused' or 'Sold Out' instead."
+            });
+          } else {
+            showToast({
+              type: 'error',
+              title: "Couldn't delete listing",
+              message: "We couldn't remove this listing right now. Please try again."
+            });
+          }
+          throw e;
+        }
+      }
+    });
+
+    if (isConfirmed) {
+      setListings(prev => prev.filter(l => l.id !== listing.id));
+      if (selectedListing?.id === listing.id) setSelectedListing(null);
+      showToast({
+        type: 'success',
+        title: 'Listing deleted',
+        message: 'Your listing has been removed successfully.'
+      });
     }
   };
 
@@ -335,7 +358,7 @@ export default function SellerDashboard() {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Reactivate
                           </button>
                         )}
-                        <button className="lc-dropdown-item lc-dropdown-item--danger text-danger" onClick={() => setDeleteId(listing.id)}>
+                        <button className="lc-dropdown-item lc-dropdown-item--danger text-danger" onClick={() => handleDeleteClick(listing)}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Delete
                         </button>
                       </div>
@@ -347,18 +370,6 @@ export default function SellerDashboard() {
           )}
         </div>
       </section>
-
-      {/* Delete Modal */}
-      <div className={`modal-overlay ${deleteId ? 'active' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null); }}>
-        <div className="modal-content">
-          <h3>Delete listing?</h3>
-          <p>This will permanently remove the produce listing and all its images.</p>
-          <div className="modal-actions">
-            <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Cancel</button>
-            <button className="btn btn-danger" onClick={handleDeleteConfirm}>Delete</button>
-          </div>
-        </div>
-      </div>
 
       {/* Listing Detail Modal */}
       {selectedListing && (() => {
@@ -442,12 +453,6 @@ export default function SellerDashboard() {
           </div>
         );
       })()}
-
-      {toast && (
-        <div className={`toast toast--${toast.type} toast--show`} id="toast">
-          {toast.message}
-        </div>
-      )}
 
       <SellerBottomNav />
     </div>
