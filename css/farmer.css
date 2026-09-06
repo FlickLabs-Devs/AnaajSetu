@@ -286,7 +286,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    position: relative;
     box-shadow: var(--shadow-xs);
     transition: box-shadow var(--transition-base);
     display: flex;
@@ -304,6 +304,8 @@
     position: relative;
     background: var(--surface-alt);
     flex-shrink: 0;
+    border-top-left-radius: calc(var(--radius-lg) - 1px);
+    border-top-right-radius: calc(var(--radius-lg) - 1px);
 }
 .seller-app .lc-image img {
     width: 100%;
@@ -346,6 +348,8 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
+    border-bottom-left-radius: calc(var(--radius-lg) - 1px);
+    border-bottom-right-radius: calc(var(--radius-lg) - 1px);
 }
 .seller-app .lc-header { margin-bottom: 0.25rem; }
 .seller-app .lc-title {
@@ -436,7 +440,8 @@
 .seller-app .lc-dropdown {
     position: absolute;
     right: 0;
-    bottom: calc(100% + 6px);
+    top: calc(100% + 6px);
+    bottom: auto;
     min-width: 170px;
     display: none;
     background: var(--surface);
