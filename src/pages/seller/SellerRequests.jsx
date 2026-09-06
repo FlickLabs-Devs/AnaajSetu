@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 import { getFriendlyErrorMessage } from '../../utils/userMessages';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 
 export default function SellerRequests() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,7 +145,10 @@ export default function SellerRequests() {
   return (
     <div className="farmer-page seller-app">
       <header className="seller-page-header">
-        <h1 style={{margin:0}}>Requests</h1>
+        <button type="button" className="seller-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 className="seller-page-title" style={{margin:0}}>Requests</h1>
       </header>
 
       <div style={{paddingBottom: '1rem'}}>

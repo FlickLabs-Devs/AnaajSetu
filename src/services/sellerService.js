@@ -32,8 +32,17 @@ export const sellerService = {
     });
 
     if (error) {
+      console.error("RPC Error Details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       if (error.message && error.message.includes('HAS_ACTIVE_TRANSACTIONS')) {
         throw new Error('HAS_ACTIVE_TRANSACTIONS');
+      }
+      if (error.message && error.message.includes('LISTING_NOT_FOUND_OR_UNAUTHORIZED')) {
+        throw new Error('LISTING_NOT_FOUND');
       }
       throw error;
     }

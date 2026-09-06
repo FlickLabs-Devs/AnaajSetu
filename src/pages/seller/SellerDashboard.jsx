@@ -113,6 +113,13 @@ export default function SellerDashboard() {
             ? "This listing has an active order or request, so it can't be deleted right now."
             : "This listing has active orders or requests. Please mark it as 'Paused' or 'Sold Out' instead."
         });
+      } else if (e.message === 'LISTING_NOT_FOUND') {
+        setListings(prev => prev.filter(l => l.id !== listing.id));
+        showToast({
+          type: 'error',
+          title: "Listing no longer available",
+          message: "This listing has already been removed."
+        });
       } else {
         showToast({
           type: 'error',
