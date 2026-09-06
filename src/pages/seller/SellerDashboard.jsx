@@ -304,8 +304,8 @@ export default function SellerDashboard() {
               return (
                 <div key={listing.id} className="card listing-card" onClick={() => setSelectedListing(listing)}>
                   
-                  <div className="lc-menu" style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10 }}>
-                    <button className="seller-btn seller-btn-ghost seller-btn-sm lc-menu-btn" style={{ background: 'var(--surface)', color: 'var(--text)', boxShadow: 'var(--shadow-sm)' }} aria-label="Actions" onClick={(e) => {
+                  <div className="lc-menu" style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+                    <button className="lc-menu-btn" aria-label="Actions" onClick={(e) => {
                        e.stopPropagation();
                        const dropdown = e.currentTarget.nextElementSibling;
                        document.querySelectorAll('.lc-dropdown').forEach(d => { if(d !== dropdown) d.classList.remove('active') });
