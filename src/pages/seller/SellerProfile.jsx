@@ -185,18 +185,24 @@ export default function SellerProfile() {
       <div className="seller-profile-header" aria-label="Profile header">
         <div className="seller-profile-avatar" aria-hidden="true">{initials}</div>
         <div className="seller-profile-name">{profile.full_name}</div>
-        <div className="seller-role-badge" style={{marginBottom: '1rem'}}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
-          <span>Farmer / Seller</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <div className="seller-role-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
+            <span>Farmer / Seller</span>
+          </div>
+          {!isEditing && (
+            <button className="seller-profile-edit-btn" onClick={handleEditClick}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              <span>Edit Profile</span>
+            </button>
+          )}
         </div>
-        {!isEditing && (
-          <button className="seller-btn seller-btn-outline" style={{borderRadius: 'var(--radius-full)', padding: '0.5rem 1.25rem', fontSize: '0.875rem'}} onClick={handleEditClick}>
-            ✎ Edit Profile
-          </button>
-        )}
       </div>
 
       <div className="seller-profile-body">
