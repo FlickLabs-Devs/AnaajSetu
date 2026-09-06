@@ -46,6 +46,7 @@ export default function BuyerDashboard() {
             profiles!fk_farmer ( full_name, phone_number )
         `)
         .eq('status', 'active')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

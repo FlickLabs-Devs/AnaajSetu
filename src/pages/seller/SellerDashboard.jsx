@@ -113,14 +113,6 @@ export default function SellerDashboard() {
             ? "This listing has an active order or request, so it can't be deleted right now."
             : "This listing has active orders or requests. Please mark it as 'Paused' or 'Sold Out' instead."
         });
-      } else if (e.message === 'HAS_HISTORICAL_TRANSACTIONS') {
-        showToast({
-          type: 'error',
-          title: "Listing can't be permanently deleted",
-          message: isPausedOrSoldOut
-            ? "This listing has transaction history that needs to be kept for your records."
-            : "This listing has transaction history that needs to be kept for your records. You can leave it paused or sold out instead."
-        });
       } else {
         showToast({
           type: 'error',

@@ -10,6 +10,7 @@ export const sellerService = {
           listing_images ( id, image_url, storage_path, sort_order )
       `)
       .eq('farmer_id', farmerId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
@@ -25,45 +26,26 @@ export const sellerService = {
   },
 
   async deleteListing(listingId, farmerId, listingImages = []) {
-    // 0. Safety check for existing transactions
-    const [
-      { count: reqCount },
-      { count: negCount },
-      { count: ordCount }
-    ] = await Promise.all([
-      supabase.from('requests').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).in('status', ['pending', 'accepted']),
-      supabase.from('negotiations').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).in('status', ['active', 'accepted']),
-      supabase.from('orders').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).in('status', ['accepted', 'processing'])
-    ]);
+    const { data, error } = await supabase.rpc('delete_farmer_listing', {
+      p_listing_id: listingId,
+      p_farmer_id: farmerId
+    });
 
-    if ((reqCount || 0) > 0 || (negCount || 0) > 0 || (ordCount || 0) > 0) {
-      throw new Error('HAS_ACTIVE_TRANSACTIONS');
-    }
-
-    // 1. Delete images from storage and database
-    if (listingImages && listingImages.length > 0) {
-      const paths = listingImages.map(i => i.storage_path).filter(Boolean);
-      if (paths.length > 0) {
-        await supabase.storage.from('listings').remove(paths);
-      }
-      
-      const imageIds = listingImages.map(i => i.id);
-      if (imageIds.length > 0) {
-        await supabase.from('listing_images').delete().in('id', imageIds);
-      }
-    }
-    // 2. Delete listing
-    const { error } = await supabase
-      .from('listings')
-      .delete()
-      .eq('id', listingId)
-      .eq('farmer_id', farmerId);
-      
     if (error) {
-      if (error.code === '23503') {
-        throw new Error('HAS_HISTORICAL_TRANSACTIONS');
+      if (error.message && error.message.includes('HAS_ACTIVE_TRANSACTIONS')) {
+        throw new Error('HAS_ACTIVE_TRANSACTIONS');
       }
       throw error;
+    }
+
+    // Only physically delete storage images if the listing was hard deleted.
+    // If it was soft deleted, we keep images so historical orders can still display them.
+    if (data === 'HARD_DELETED' && listingImages && listingImages.length > 0) {
+      const paths = listingImages.map(i => i.storage_path).filter(Boolean);
+      if (paths.length > 0) {
+        // Softly catch storage errors so the main flow succeeds
+        await supabase.storage.from('listings').remove(paths).catch(console.error);
+      }
     }
   },
 
